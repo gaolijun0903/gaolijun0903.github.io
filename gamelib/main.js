@@ -1,0 +1,491 @@
+//点击屏幕任意位置，可拖动主角
+//生成障碍和金币的方法合二为一
+var width = window.innerWidth;  
+var height = window.innerHeight; 
+var httpimg = 'https://www.yongche.com/media/get_image.php?media_id='; 
+//var httpimg = 'https://i1-testing.Yongche.org/media/';
+var httpaudio = '//i0.yongche.name/';
+var spicJson = {"frames":[{"filename":"coinbg","frame":{"x":2,"y":246,"w":225,"h":82},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":225,"h":82},"sourceSize":{"w":225,"h":82}},{"filename":"crash","frame":{"x":310,"y":514,"w":186,"h":153},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":186,"h":153},"sourceSize":{"w":186,"h":153}},{"filename":"garbagecan","frame":{"x":342,"y":404,"w":148,"h":108},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":6,"y":29,"w":148,"h":108},"sourceSize":{"w":162,"h":162}},{"filename":"myprizebtn","frame":{"x":210,"y":382,"w":130,"h":95},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":130,"h":95},"sourceSize":{"w":130,"h":95}},{"filename":"one","frame":{"x":210,"y":579,"w":84,"h":290},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":62,"y":4,"w":84,"h":290},"sourceSize":{"w":208,"h":298}},{"filename":"playcount","frame":{"x":210,"y":479,"w":98,"h":98},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":98,"h":98},"sourceSize":{"w":98,"h":98}},{"filename":"plus100","frame":{"x":2,"y":871,"w":45,"h":13},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":45,"h":13},"sourceSize":{"w":45,"h":13}},{"filename":"roadblock","frame":{"x":229,"y":250,"w":104,"h":130},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":29,"y":15,"w":104,"h":130},"sourceSize":{"w":162,"h":162}},{"filename":"rulesbtn","frame":{"x":229,"y":162,"w":117,"h":86},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":117,"h":86},"sourceSize":{"w":117,"h":86}},{"filename":"sharebtn","frame":{"x":2,"y":82,"w":346,"h":78},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":346,"h":78},"sourceSize":{"w":346,"h":78}},{"filename":"startbtn","frame":{"x":2,"y":2,"w":346,"h":78},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":346,"h":78},"sourceSize":{"w":346,"h":78}},{"filename":"stone","frame":{"x":350,"y":2,"w":160,"h":100},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":1,"y":32,"w":160,"h":100},"sourceSize":{"w":162,"h":162}},{"filename":"three","frame":{"x":350,"y":104,"w":158,"h":298},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":24,"y":0,"w":158,"h":298},"sourceSize":{"w":208,"h":298}},{"filename":"timerbg","frame":{"x":2,"y":162,"w":225,"h":82},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":225,"h":82},"sourceSize":{"w":225,"h":82}},{"filename":"two","frame":{"x":2,"y":330,"w":206,"h":298},"rotated":false,"trimmed":true,"spriteSourceSize":{"x":0,"y":0,"w":206,"h":298},"sourceSize":{"w":208,"h":298}}],"meta":{"app":"http://www.texturepacker.com","version":"1.0","image":"spic.png","format":"RGBA8888","size":{"w":512,"h":1024},"scale":"1","smartupdate":"$TexturePacker:SmartUpdate:e9fd54ef0410952a79f755f7ac852be3$"}}
+
+// 创建游戏实例
+var game = new Phaser.Game(width, height, Phaser.CANVAS, 'game',true);
+game.resolution = window.devicePixelRatio;
+// 定义场景
+var states = {
+	// boot场景
+	boot: function(){
+		this.preload = function(){
+			// 加载游戏资源
+			game.load.image('loadingbg', httpimg+'g2/M02/1B/3C/rBEBP1psgt2IQiGTAAAoFpSO9-sAAK3pwDtc0IAACgu105.png');
+	        game.load.image('loadingbar', httpimg+'g2/M02/1A/29/rBEBP1psgt2IFDjJAAADk5OHafEAAKXpgP__FUAAAOr234.png');
+		},
+		this.create = function(){
+			//game.add.image(0,0,'loadingbg');
+		},
+		this.render = function(){
+			game.state.start('preload');
+		}
+	},
+	// 加载场景
+    preload: function() {
+    	this.preload = function() {
+	        var loadingbg = game.add.sprite(game.world.centerX,game.world.centerY,"loadingbg");
+	        var loadingbar = game.add.sprite(0,0,"loadingbar");
+	        loadingbar.reset(game.world.centerX-loadingbar.width/2,game.world.centerY);
+	        loadingbg.anchor.setTo(0.5, 0.5);
+	        loadingbar.anchor.setTo(0, -1.05);
+	        game.load.setPreloadSprite(loadingbar);
+	        // 加载游戏资源
+	        game.load.image('homepagebg', httpimg+'g2/M01/1C/04/rBEBP1pxgyeIE05HAAXMI327Te4AAK7DwCSJ8AABcw7461.png');//首页-背景
+	        game.load.image('playbg', httpimg+'g2/M02/1C/0A/rBEBP1p1bO6INpQfAAyHmwBz6oQAAK9VwGfhwwADIez518.png');//游戏页-背景
+	        game.load.atlas("spic", httpimg+"g2/M02/1C/0B/rBEBP1p1kY6ICQlTAAHlhv6pJOQAAK9dwHKeuoAAeWe249.png", null,spicJson);//精灵图
+	        game.load.spritesheet('dude', httpimg+'g2/M04/1C/0A/rBEBP1p1XeaINgTsAAQ_1WywasIAAK9SgIGR0QABD_t853.png',  187, 299); //游戏页-游戏主角
+	        game.load.spritesheet('coin', httpimg+'g2/M02/1B/3C/rBEBP1psgt2IIJy2AAA9w4g5HbIAAK3pwDnR-UAAD3b307.png', 81, 81); //游戏页-金币
+	        game.load.spritesheet('mute-play', httpimg+'g2/M02/1B/3C/rBEBJVpsgt6IVvREAAANsPV9iJMAAK3pwDt1CMAAA3I754.png', 32, 23); //游戏页-静音及播放
+            game.load.crossOrigin = 'anonymous'; // 设置跨域
+            game.load.audio('bgMusic', httpaudio+'s/download/201801/bgMusic1.mp3?1478153218');  //游戏页-背景音乐
+	        game.load.audio('scoreMusic', httpaudio+'s/download/201801/addscore.mp3?1478153218');  //游戏页-加分音乐
+            game.load.audio('bombMusic', httpaudio+'s/download/201801/bombom.mp3?1478153218');  //游戏页-爆炸音乐
+            
+            // 监听加载完毕事件
+            game.load.onLoadComplete.add(onLoad);
+            // 加载完毕回调方法
+            function onLoad() {
+            	getCommon(); 
+            }
+	    }
+    },
+    // 开始场景
+    created: function() {
+    	var button,muteButton;
+    	this.create = function() {
+    		//alert('create')
+    		// 声音管理类 
+    		this.soundManager = game.sound;
+            // 添加背景
+	        var bg = game.add.image(0, 0, 'homepagebg');
+	        bg.width = game.world.width;
+	        bg.height = game.world.height;
+	        // 添加"活动规则"按钮
+	        ruleButton = game.add.button(game.world.width -60-9 , 20,'spic',  showRules, this, 'rulesbtn','rulesbtn', 'rulesbtn');
+	        ruleButton.width /=2;
+	        ruleButton.height/=2;
+	        function showRules(){
+	        	$('#rule').fadeIn(100);
+	        }
+	        // 添加"我的奖品"按钮
+	        prizeButton = game.add.button(16, 16,'spic', showPrizes, this, 'myprizebtn', 'myprizebtn', 'myprizebtn');
+	        prizeButton.width/=2;
+	        prizeButton.height/=2;
+	        function showPrizes(){
+	        	if(!isLogin){//未登录--我的奖品、开始游戏 、分享，提示登录；游戏次数为'--'
+	        		if(inApp){  
+                		var link = 'yongche://login?done=' + encodeURIComponent(window.location.href);
+                    	window.location.href = link;
+	                }else{
+	                	$('#loginMask').show();
+	                }
+	        		return 
+	        	}
+	        	$('#prize').fadeIn(100);
+	        }
+	        if(isLogin){//未登录
+        		// 添加"我有几次游戏机会"
+	            var gamecountText = game.add.text(game.world.centerX, game.world.height-140, '我有'+ gameNum +'次游戏机会', { fontSize: '18px', fill: '#FFFFFF' });
+	            gamecountText.anchor.setTo(0.5, 1);
+        	}
+	       	
+	        // 添加"开始游戏"按钮
+	        startButton = game.add.button(game.world.centerX, game.world.height-90, 'spic', onStart, this,'startbtn','startbtn','startbtn');
+	        startButton.width/=2;
+	        startButton.height/=2;
+	        startButton.anchor.setTo(0.5, 1);
+	        function onStart(){
+	        	if(!isLogin){//未登录
+	        		if(inApp){
+                		var link = 'yongche://login?done=' + encodeURIComponent(window.location.href);
+                    	window.location.href = link;
+	                }else{
+	                	$('#loginMask').show();
+	                }
+	        		return 
+	        	}
+	        	if(!isRightTime){//现在不在活动期间 || 用户信息为空
+	        		toastMsg('现在不在活动期间 或 用户信息为空');
+	        		return
+	        	}
+	        	if(gameNum<=0){
+	        		toastMsg('分享可获得游戏机会');
+	        		return
+	        	}
+	        	startGame(); 
+	        }
+	        // 添加"分享 "按钮
+	        shareButton = game.add.button(game.world.centerX, game.world.height-35, 'spic', onShare, this, 'sharebtn', 'sharebtn', 'sharebtn');
+	        shareButton.width/=2;
+	        shareButton.height/=2;
+	        shareButton.anchor.setTo(0.5, 1);
+	        function onShare(){
+	        	if(!isLogin){//未登录
+	        		if(inApp){
+                		var link = 'yongche://login?done=' + encodeURIComponent(window.location.href);
+                    	window.location.href = link;
+	                }else{
+	                	$('#loginMask').show();
+	                }
+	        		return 
+	        	}
+	            shareFn();
+	        }
+	        
+	        // 添加静音按钮  播放
+	        muteButton = game.add.button(game.world.width-32-14, game.world.height-23-14, 'mute-play', onMute, this, 1, 1, 1);
+	        this.judgeMute();
+	        muteButton.anchor.setTo(0.5, 0.5);
+	        function onMute(){
+	        	this.soundManager.mute =  !this.soundManager.mute;
+	        	this.judgeMute();
+	        }
+       },
+        this.judgeMute = function(update){
+	    	if(update){
+	    		if(this.soundManager.mute){
+	        		muteButton.angle = 0;
+	        	}else{
+	        		muteButton.angle += 1;
+	        	}
+	    	}else{
+	    		if(this.soundManager.mute){
+	        		muteButton.setFrames(0, 0,0);
+	        	}else{
+	        		muteButton.setFrames(1, 1,1);
+	        	}
+	    	}
+        }
+    },
+    // 游戏场景
+    play: function() {
+    	var grassBeltWidth = 40,
+    		scoreMusic,
+        	bombMusic,
+        	bgMusic,
+        	muteButton, 
+        	preX = 0,
+        	move_velocity = 200, // 障碍物和奖励的速度
+        	minTouchDis = width/8,  // x滑动的最小触发距离
+        	obstaclesTypes = ['stone','roadblock','garbagecan'];
+    	this.create = function(){
+    		this.touching = false; // 是否正在触摸
+       		this.isAllStop=false;
+    		// 声音管理类 
+    		this.soundManager = game.sound;
+    		// 添加背景音乐
+            if (!bgMusic) {
+                bgMusic = game.add.audio('bgMusic');
+                bgMusic.loopFull();
+            }
+            // 缓存其他音乐
+            scoreMusic = game.add.audio('scoreMusic');
+            bombMusic = game.add.audio('bombMusic');
+    		// 添加背景 无限滚动
+	       	this.bg = game.add.tileSprite(0, 0, game.world.width, game.world.height, 'playbg'); 
+	        game.physics.enable(this.bg, Phaser.Physics.ARCADE); 
+	        // 滚动背景的像素宽高
+	        this.bgImg = game.cache.getImage('playbg');
+	        this.bg.tileScale.x = game.world.width / this.bgImg.width;
+	        this.bg.tileScale.y = game.world.height / this.bgImg.height;
+	    	//添加主角
+	        this.car = this.game.add.sprite(game.world.centerX, game.world.height - 100, 'dude');
+	        this.car.width = 99;
+          	this.car.height= 157.5;
+	        this.car.anchor.setTo(0.5, 0.5);
+	        game.physics.arcade.enable(this.car);
+          	this.car.body.setSize(123,210,32,13);   
+	        // 创建动画
+	  		this.car.animations.add('left', [4], 10, true);
+	    	this.car.animations.add('center', [0,1,2,3], 10, true);
+	  		this.car.animations.add('right', [5], 10, true);
+	  		this.car.animations.add('over', [6], 10, true);
+	  		this.car.animations.play('center');
+	        // 创建一个group，包含coin  stone  roadblock  garbagecan
+	        this.obstacles = game.add.group();
+	        this.obstacles.enableBody = true;
+	       	// 添加时间背景
+	        var timerbg = game.add.image(19, 16,'spic', 'timerbg');
+	        timerbg.width /=2;
+	        timerbg.height /=2;
+	        // 添加时间
+			this.remainTime = 60;
+	        var style = { font: "20px Arial", fill: "#ffffff" };
+	        this.remainTimeText = this.game.add.text(62, 25, "01：00", style);
+			// 添加次数背景
+	        var countbg = game.add.image(game.world.centerX, 42, 'spic','playcount');
+	        countbg.width /=2;
+	        countbg.height /=2;
+	        countbg.anchor.setTo(0.5, 0.5);
+	        // 添加次数
+	        var style = { font: "22px Arial", fill: "#ffffff" };
+	        this.remainCountText = this.game.add.text(game.world.centerX, 42, gameNum, style);
+	        this.remainCountText.anchor.setTo(0.5, 0.5);
+			// 添加分数背景
+	        var coinbg = game.add.image(game.world.width-19-112, 16, 'spic','coinbg');
+	        coinbg.width /=2;
+	        coinbg.height /=2;
+	        // 添加分数和金币数
+			this.score = 0;
+	        var style = { font: "20px Arial", fill: "#ffffff" };
+	        this.scoreText = this.game.add.text(game.world.width-19-90, 25, " "+this.score, style);
+	        // 添加静音按钮  播放
+	        muteButton = game.add.button(game.world.width-32-14, game.world.height-23-14, 'mute-play', onMute, this, 1, 1, 1);
+	        this.judgeMute();
+	        muteButton.anchor.setTo(0.5, 0.5);
+	        function onMute(){
+	        	this.soundManager.mute =  !this.soundManager.mute;
+	        	this.judgeMute();
+	        }
+			// 监听滑动事件
+			this.game.input.addMoveCallback(this.moveCallback,this);
+			// 监听按下事件
+			game.input.onDown.add(this.onDownCb,this);
+			// 监听离开事件
+			this.game.input.onUp.add(this.onUpCb,this);
+			//第一次游戏展示引导页
+			var that = this;
+			var firstplay = window.localStorage.getItem("firstplay");
+			if(!firstplay){
+				$('#leadPage').fadeIn(100);
+				firstplay = window.localStorage.setItem("firstplay",true);
+			}else {
+				this.ThreeTwoOne();//321开始倒计时
+			}
+			$("#close_leadPage").click(function(){
+				$('#leadPage').fadeOut(100);
+				that.ThreeTwoOne();//321开始倒计时
+			})
+    	},
+    	this.update = function(){
+    		this.judgeMute(1);
+    		// 小车和障碍物的碰撞监听
+    		game.physics.arcade.overlap(this.car, this.obstacles, this.crashCarFunc, null, this);
+    	},
+    	/*this.render = function() {
+		    game.debug.bodyInfo(this.car, 32, 32);// 在坐标（32，32）位置显示文本debug信息
+		    game.debug.body(this.car);// 绘制矩形body
+		    this.obstacles.forEach(function(item){
+		    	game.debug.body(item);// 绘制矩形body
+		    })
+		},*/
+    	this.moveCallback = function(pointer, x, y, isTap) {
+			if (isTap || !touching) return
+			if(preX<x){//右划
+				this.car.animations.play('right');
+			}else if(preX==x){
+				this.car.animations.play('center');
+			}else if(preX>x){//向左
+				this.car.animations.play('left');
+			}
+			preX = x;
+			if( x <= grassBeltWidth + this.car.width/2){
+				this.car.x =  grassBeltWidth + this.car.width/2;
+			}else if(x >= (game.world.width - grassBeltWidth - this.car.width/2)){
+				this.car.x = game.world.width - grassBeltWidth - this.car.width/2;
+			}else{
+				this.car.x = x;
+			}
+		},
+		this.onDownCb = function(pointer) {
+			touching = true;
+		},
+		this.onUpCb = function(pointer) {
+			touching = false;
+			if(this.isAllStop){
+				return
+			}
+			this.car.animations.play('center');
+		},
+	    this.ThreeTwoOne = function(numImg){
+	    	var num =3;
+	    	var imgArr = ['one','two','three'];
+	    	var ThreeTwoOneTimer = game.time.events.loop(1000,function(){
+	    		if(num<=0){
+	    			game.time.events.remove(ThreeTwoOneTimer)
+	    			// 定时器，倒计时
+		        	this.reduceTimer = game.time.events.loop(500, this.timerCallback, this); 
+	    			return
+	    		}
+	    		this.tweenImg(imgArr[num-1]);
+	    		num--;
+	    	},this)
+	    },
+	    this.tweenImg = function(numImg){
+	    	// 添加3,2,1图片
+		    var goal = game.add.image(game.world.centerX, game.world.centerY,'spic', numImg);
+		    goal.width = 0;
+		    goal.height = 0;
+		    goal.anchor.setTo(0.5,0.5);
+		    goal.alpha = 0;
+		    // 添加过渡效果
+		    var showTween = game.add.tween(goal).to({
+		        alpha: 1,
+		        width : game.world.width/3,
+		    	height : game.world.width/3
+		    }, 200, Phaser.Easing.Linear.None, true, 0, 0, false);
+		    showTween.onComplete.add(function() {
+		        var hideTween = game.add.tween(goal).to({
+		            alpha: 0,
+		            width : 0,
+		    		height : 0
+		        }, 200, Phaser.Easing.Linear.None, true, 200, 0, false);
+		    });
+	    },
+	   	this.judgeMute = function(update){
+	    	if(update){
+	    		if(this.soundManager.mute){
+	        		muteButton.angle = 0;
+	        	}else{
+	        		muteButton.angle += 1;
+	        	}
+	    	}else{
+	    		if(this.soundManager.mute){
+	        		muteButton.setFrames(0, 0,0);
+	        	}else{
+	        		muteButton.setFrames(1, 1,1);
+	        	}
+	    	}
+        },
+	    this.add_move_sprite = function(){
+	    	var starNum = Math.floor(Math.random()*10);
+	    	//console.log(starNum)
+	    	if(starNum <= 3){
+	    		this.addmystones('coin',1);
+	    	}else if(starNum <= 5){
+	    		this.addmystones('coin',2);
+	    	}else if(starNum <= 6){
+	    		this.addmystones('stone',1);
+	    	}else if(starNum <= 8){
+	    		this.addmystones('roadblock',1);
+	    	}else{
+	    		this.addmystones('garbagecan',1);
+	    	}
+	    },
+	    this.addmystones = function(type,n){
+	    	// 随机[0,2]的整数,确定下落的跑道
+		    var num = Math.floor(Math.random()*3);
+		    var	halfRoadWidth = (game.world.width-grassBeltWidth*2)/6;
+	    	for(var i=0;i<n;i++){
+	        	var obstacle;
+	        	var y;
+	        	if(type==='coin'){
+	        		obstacle = this.obstacles.create(0, 0, type);
+		        	// 创建动画
+			    	obstacle.animations.add('jump', [0, 1,2,3], 8, true);
+			  		obstacle.animations.play('jump');
+			  		y = (70)*(n-i-1);
+			  		obstacle.body.setSize(63,50,10,5);
+		        }else{
+		        	obstacle = this.obstacles.create(0, 0,'spic', type);
+		        	y = 0;
+		        	obstacle.body.setSize(140,130,10,10);
+		        }
+		        var x = grassBeltWidth+ halfRoadWidth*(num*2+1);
+		  		// 重新设置位置
+		        obstacle.reset(x, y);
+		  		obstacle.type = type;
+		  		obstacle.width = 70;
+	        	obstacle.height= 70;
+	        	obstacle.anchor.setTo(0.5, 0.5);
+	        	// kill超出边界的障碍物
+		        obstacle.checkWorldBounds = true;
+		        obstacle.outOfBoundsKill = true;
+			}
+       	},
+	    this.timerCallback = function(){
+	    	this.add_move_sprite();
+	    	this.reduceTime();
+	    },
+	    this.reduceTime = function(){
+	    	this.remainTime -= 0.5;
+	    	var timeStr = parseInt(this.remainTime)<10 ? '0'+parseInt(this.remainTime) : parseInt(this.remainTime);
+	        this.remainTimeText.text = "00: "+timeStr;
+	        //随着时间进行，速度越来越快
+	        var v = move_velocity + (60-this.remainTime)*20;
+	        this.bg.autoScroll(0, v/(game.world.height / this.bgImg.height));
+	        this.obstacles.forEachAlive(function(item){
+	    		item.body.velocity.y = v;
+	    	});
+	        // 结束场景
+	        if(this.remainTime <= 0){ 
+	        	this.allStopMove();
+	        	// 设置背景静止
+	    		this.bg.autoScroll(0, 0);
+		    	var that = this;
+	        	game.time.events.add(1000, function(){
+	        		showOver(parseInt(that.score/100));//展示“游戏结束”，并把分数发送给后台 
+	        	}, this);
+	        }
+	    },
+	    this.allStopMove = function(){
+	    	// 移除定时器
+        	this.game.time.events.remove(this.reduceTimer);
+        	//让星星和障碍停止运动
+	    	this.obstacles.forEach(function(item){
+	    		item.body.velocity.y = 0;
+	    	})
+	    	this.isAllStop = true;
+	    	//取消滑动监听，主角不可移动
+	    	this.game.input.deleteMoveCallback(this.moveCallback,this);
+	    },
+	    this.crashCarFunc = function(car, obstacle){
+	    	obstacle.kill();
+	    	var imageName = '';
+	    	if(obstacle.type==='coin'){
+	    		imageName = 'plus100';
+	    		// 更新分数
+			   	this.score += 1*100;
+	        	this.scoreText.text =  this.score; 
+			    // 播放音效
+	    		scoreMusic.play();
+	    	}else{
+	    		// 设置背景静止
+	    		this.bg.autoScroll(0, 0);
+	    		this.car.animations.play('over');
+	    		imageName = 'crash';
+	    		this.allStopMove();
+	    		// 播放音效 
+	    		bombMusic.play();  
+	    	}
+	    	
+	    	// 添加得分或碰撞图片
+		    var goal = game.add.image(obstacle.x, obstacle.y,'spic', imageName);
+		    goal.anchor.setTo(0.5, 0.5);
+		    goal.alpha = 0;
+		    // 添加过渡效果
+		    var showTween = game.add.tween(goal).to({
+		        alpha: 1,
+		        y: goal.y - 20
+		    }, 100, Phaser.Easing.Linear.None, true, 0, 0, false);
+		    var that = this;
+		    showTween.onComplete.add(function() {
+		        var hideTween = game.add.tween(goal).to({
+		            alpha: 0,
+		            y: goal.y - 20
+		        }, 100, Phaser.Easing.Linear.None, true, 200, 0, false);
+		        hideTween.onComplete.add(function() {
+		            goal.kill();
+		            if(obstacle.type==='coin') return
+		            game.time.events.add(1000, function(){
+		        		showOver(parseInt(that.score/100));//展示“游戏结束”，并把分数发送给后台 
+		        	}, this);
+		        });
+		    });
+	    }
+    }
+};
+
+// 添加场景到游戏示例中
+Object.keys(states).map(function(key) {
+	game.state.add(key, states[key]);
+});
+
+// 启动游戏
+game.state.start('boot');
